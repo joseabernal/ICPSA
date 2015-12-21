@@ -10,7 +10,7 @@ function [Sbest, zSBest] = SimmulatedAnnealing(S0, z, T0, alpha)
     while T > 2
         Stemp = GetRandomNeighbour(S);
         zStemp = z(Stemp);
-        fprintf('z = %s, vect = %s', z(Stemp), mat2str(S'));
+        fprintf('T = %s, z = %s, vect = %s', int2str(T), z(Stemp), mat2str(Stemp'));
         if zStemp < zS
             S = Stemp;
             zS = zStemp;
