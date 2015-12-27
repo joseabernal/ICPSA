@@ -6,7 +6,34 @@ function handler = BasicFunctions3D()
     handler.Rotation3 = @Rotation3;
     
     handler.SimmulatedAnnealing = @SimmulatedAnnealing;
+    
+    handler.RotationCostFunction = @RotationCostFunction;
+    handler.TranslationCostFunction = @TranslationCostFunction;
+    handler.Translation3 = @Translation3;
+    handler.SimmulatedAnnealing_t = @SimmulatedAnnealing_t;
 end
+
+
+function r = RotationCostFunction(A, B)
+    r = @(T) EvaluateR(A, B, T);
+end
+
+function cost = EvaluateR(A, B, T)
+    Btrans = Rotation3(B, T(1), T(2), T(3));
+    cost = DetermineVolume(A, Btrans);
+end
+
+
+function t = TranslationCostFunction(A, B)
+    t = @(T) EvaluateT(A, B, T);
+end
+
+function cost = EvaluateT(A, B, T)
+    Btrans = Translation3(B, T(1), T(2), T(3));
+    cost = DetermineVolume(A, Btrans);
+end
+
+
 
 %% Evaluation of functions
 function evf = CreateEvaluationFunction(A, B)
@@ -166,7 +193,7 @@ function y = Rotation3(x, theta1, theta2, theta3)
 end
 
 %% SA
-function [Sbest, zSBest] = SimmulatedAnnealing(S0, z, T0, alpha)
+function [Sbest, zSBest] = SimmulatedAnnealing(S0, z, T0, alpha , c)
     T = T0;
     Sbest = S0;
     S = Sbest;
@@ -176,7 +203,7 @@ function [Sbest, zSBest] = SimmulatedAnnealing(S0, z, T0, alpha)
 
     iter = 0;
     while T > 2
-        Stemp = GetRandomNeighbour(S);
+        Stemp = GetRandomNeighbour(S , c);
         zStemp = z(Stemp);
         fprintf('T = %s, z = %s, vect = %s', int2str(T), z(Stemp), mat2str(Stemp'));
         if zStemp < zS
@@ -204,8 +231,52 @@ function [Sbest, zSBest] = SimmulatedAnnealing(S0, z, T0, alpha)
     end
 end
 
-function Sn = GetRandomNeighbour(S)
+function [Sbest, zSBest] = SimmulatedAnnealing_t(S0, z, T0, alpha , c)
+    T = T0;
+    Sbest = S0;
+    S = Sbest;
+    
+    zS = z(S);
+    zSBest = zS;
+
+    iter = 0;
+    while T > 2
+        Stemp = GetRandomNeighbour_t(S, c);
+        zStemp = z(Stemp);
+        fprintf('T = %s, z = %s, vect = %s', int2str(T), z(Stemp), mat2str(Stemp'));
+        if zStemp < zS
+            S = Stemp;
+            zS = zStemp;
+            fprintf(' better');
+            if zStemp < zSBest
+                Sbest = Stemp;
+                zSBest = zStemp;
+                fprintf(' best');
+            end
+        else
+            r = rand;
+            fprintf(' r = %s, e = %s', r, exp(-(zStemp-zS) / T));
+            if (r < exp(-(zStemp-zS) / T))
+                fprintf(' accepted');
+                S = Stemp;
+                zS = zStemp;
+            end
+        end
+        
+        T = T * alpha;
+        iter = iter + 1;
+        fprintf('\n');
+    end
+end
+
+function Sn = GetRandomNeighbour(S, c)
     Sn = S;
     idx = ceil(rand * length(S));
-    Sn(idx) = Sn(idx)  + (rand * pi - pi/2);
+    Sn(idx) = Sn(idx)  + (rand * pi/(c) - pi/(2*c));
+end
+
+function Sn = GetRandomNeighbour_t(S , c)
+    Sn = S;
+    idx = ceil(rand * length(S));
+    Sn(idx) = Sn(idx)  + (rand * 0.1/c - 0.05/c);
 end
