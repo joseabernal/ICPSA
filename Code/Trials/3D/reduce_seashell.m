@@ -97,7 +97,7 @@ y = (a*(1-v/(2*pi)).*(1+cos(u)) + c) .* sin(n*v) ;
 z = b*v/(2*pi) + a*(1-v/(2*pi)) .* sin(u) ;
 
 % plot the surface
-surf(x,y,z,y)
+%surf(x,y,z,y)
 shading interp
 
 axis off
@@ -117,5 +117,46 @@ else
         drawnow
     end
 end
+
+% Reshape
+m = x(:);
+n = y(:);
+o = z(:);
+clear x y z;
+x = m;
+y = n;
+z = o;
+
+% Cut a part of the object
+k = 1;
+for i=1:16348
+   %if( z(i) < 9 ) %original 
+   if( z(i) > 0.4555 ) %spike
+   %if( z(i) < 0.001 ) %another
+       a(k) = x(i);
+       b(k) = y(i);
+       c(k) = z(i);
+       k = k + 1;
+   end
+end
+
+% Check reduction of data
+size(a,2)/16348
+
+% Minimize density of the data cloud
+clear x y z;
+%init = 1;
+init = 2;
+%init = 3;
+step = size(a,2) / 2725;
+fin = size(a,2);
+x = a(init:step:fin);
+y = b(init:step:fin);
+z = c(init:step:fin);
+
+% Check final amount of data
+size(x,2)
+
+plot3(x,y,z,'.')
 
 triplets = [x(:), y(:), z(:)];
